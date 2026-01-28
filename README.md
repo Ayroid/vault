@@ -1,5 +1,7 @@
 # vault
 
+![vault banner](public/banner.png)
+
 A lightweight CLI tool for managing reusable React and Next.js components.
 
 Save components from any project into a local registry, list them, and sync them with a GitHub repository for reuse across multiple codebases. Instead of copy-pasting components between projects or maintaining separate component libraries, vault provides a fast, filesystem-based workflow that fits naturally into existing development habits.
