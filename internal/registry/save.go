@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"vault/internal/config"
 )
@@ -19,6 +20,21 @@ func HandleSave(args []string) error {
 	return CopyFile(src)
 }
 
+func filenameExists(filename string) (bool, error) {
+	files, err := ListFiles()
+	if err != nil {
+		return false, errors.New("error saving component")
+	}
+
+	filenameExist := slices.Contains(files, filename)
+
+	if filenameExist {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func CopyFile(src string) error {
 	sourceFile, err := os.Open(src)
 
@@ -26,6 +42,15 @@ func CopyFile(src string) error {
 		return err
 	}
 	defer sourceFile.Close()
+
+	fileExists, err := filenameExists(sourceFile.Name())
+	if err != nil {
+		return err
+	}
+
+	if fileExists {
+		return errors.New("component with same name already exists in vault")
+	}
 
 	dest := config.VaultPath + sourceFile.Name()
 
