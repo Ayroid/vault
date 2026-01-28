@@ -2,6 +2,7 @@ package registry
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -10,14 +11,40 @@ import (
 	"vault/internal/config"
 )
 
-func HandleSave(args []string) error {
+type SaveOptions struct {
+	Name string
+}
+
+func parseSaveArgs(args []string) (string, SaveOptions, error) {
 	if len(args) < 1 {
-		return errors.New("usage vault save <filename>")
+		return "", SaveOptions{}, errors.New("usage: vault save <file> [--name <newname>]")
 	}
 
 	src := args[0]
+	opts := SaveOptions{}
 
-	return CopyFile(src)
+	i := 1
+	for i < len(args) {
+		switch args[i] {
+		case "--name":
+			if i+1 >= len(args) {
+				return "", SaveOptions{}, errors.New("--name requires a value")
+			}
+			opts.Name = args[i+1]
+			i += 2
+		default:
+			return "", SaveOptions{}, fmt.Errorf("unknown flag: %s", args[i])
+		}
+	}
+	return src, opts, nil
+}
+
+func HandleSave(args []string) error {
+	src, opts, err := parseSaveArgs(args)
+	if err != nil {
+		return err
+	}
+	return CopyFile(src, opts)
 }
 
 func filenameExists(filename string) (bool, error) {
@@ -35,27 +62,31 @@ func filenameExists(filename string) (bool, error) {
 	return false, nil
 }
 
-func CopyFile(src string) error {
+func CopyFile(src string, opts SaveOptions) error {
 	sourceFile, err := os.Open(src)
-
 	if err != nil {
 		return err
 	}
 	defer sourceFile.Close()
 
-	fileExists, err := filenameExists(sourceFile.Name())
+	filename := filepath.Base(sourceFile.Name())
+
+	if opts.Name != "" {
+		filename = opts.Name
+	}
+
+	exists, err := filenameExists(filename)
 	if err != nil {
 		return err
 	}
 
-	if fileExists {
+	if exists {
 		return errors.New("component with same name already exists in vault")
 	}
 
-	dest := config.VaultPath + sourceFile.Name()
+	dest := filepath.Join(config.VaultPath, filename)
 
-	err = os.MkdirAll(filepath.Dir(dest), 0755)
-	if err != nil {
+	if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil {
 		return err
 	}
 
