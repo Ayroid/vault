@@ -3,8 +3,8 @@ package registry
 import (
 	"errors"
 	"fmt"
-	"gocopy/internal/config"
 	"os"
+	"vault/internal/config"
 )
 
 func HandleList(args []string) error {

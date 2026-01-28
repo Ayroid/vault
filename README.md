@@ -1,33 +1,33 @@
-# gocopy
+# vault
 
 A lightweight CLI tool for managing reusable React and Next.js components.
 
-Save components from any project into a local registry, list them, and sync them with a GitHub repository for reuse across multiple codebases. Instead of copy-pasting components between projects or maintaining separate component libraries, gocopy provides a fast, filesystem-based workflow that fits naturally into existing development habits.
+Save components from any project into a local registry, list them, and sync them with a GitHub repository for reuse across multiple codebases. Instead of copy-pasting components between projects or maintaining separate component libraries, vault provides a fast, filesystem-based workflow that fits naturally into existing development habits.
 
 ## Features
 
 - **Save** - Store components in a local vault for quick access
 - **List** - View all saved components at a glance
-- **Sync** - Push/pull components to GitHub for cross-project sharing *(coming soon)*
+- **Sync** - Push/pull components to GitHub for cross-project sharing _(coming soon)_
 
 ## Installation
 
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/gocopy.git
-cd gocopy
-go build -o gocopy
+git clone https://github.com/yourusername/vault.git
+cd vault
+go build -o vault
 ```
 
 ### Move to PATH (optional)
 
 ```bash
 # Linux/macOS
-sudo mv gocopy /usr/local/bin/
+sudo mv vault /usr/local/bin/
 
 # Or add to your local bin
-mv gocopy ~/.local/bin/
+mv vault ~/.local/bin/
 ```
 
 ## Usage
@@ -35,28 +35,28 @@ mv gocopy ~/.local/bin/
 ### Save a component
 
 ```bash
-gocopy save <path-to-file>
+vault save <path-to-file>
 ```
 
 Save any file to your local vault:
 
 ```bash
-gocopy save ./components/Button.tsx
-gocopy save ./hooks/useAuth.ts
-gocopy save ./lib/utils.ts
+vault save ./components/Button.tsx
+vault save ./hooks/useAuth.ts
+vault save ./lib/utils.ts
 ```
 
 ### List saved components
 
 ```bash
-gocopy list
+vault list
 ```
 
 View all components currently stored in your vault.
 
 ## How It Works
 
-gocopy uses a simple filesystem-based approach:
+vault uses a simple filesystem-based approach:
 
 1. Components are stored in `.vault/components/` relative to where you run the command
 2. Files are saved with their original filenames

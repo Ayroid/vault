@@ -6,12 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"gocopy/internal/config"
+	"vault/internal/config"
 )
 
 func HandleSave(args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage gocopy save <filename>")
+		return errors.New("usage vault save <filename>")
 	}
 
 	src := args[0]

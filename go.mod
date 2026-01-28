@@ -1,3 +1,3 @@
-module gocopy
+module vault
 
 go 1.25.6

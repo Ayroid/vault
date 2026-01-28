@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"gocopy/internal/registry"
+	"vault/internal/registry"
 )
 
 type Command string
