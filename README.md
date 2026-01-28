@@ -48,6 +48,12 @@ vault save ./hooks/useAuth.ts
 vault save ./lib/utils.ts
 ```
 
+Save files with another name:
+
+```bash
+vault save ./Button.tsx --name RoundButton.tsx
+```
+
 ### List saved components
 
 ```bash
@@ -76,7 +82,7 @@ your-project/
 
 ## Roadmap
 
-- [ ] Custom naming with `--name` flag
+- [x] Custom naming with `--name` flag
 - [ ] GitHub sync support
 - [ ] Component categories/tags
 - [ ] Search functionality
