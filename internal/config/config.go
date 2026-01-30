@@ -1,3 +1,4 @@
 package config
 
-const VaultPath = "./.vault/components/"
+const TSXVaultPath = "./.vault/components/tsx/"
+const JSXVaultPath = "./.vault/components/jsx/"

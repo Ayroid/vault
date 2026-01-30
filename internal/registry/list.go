@@ -4,46 +4,84 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
 	"vault/internal/config"
 )
+
+func treeDisplay(components []string) {
+	for index, file := range components {
+		prefix := "├── "
+		if index == len(components)-1 {
+			prefix = "└── "
+		}
+		fmt.Println(prefix + file)
+	}
+}
+
+func GetComponents(vaultPath string) ([]string, error) {
+	componentFiles, err := os.ReadDir(vaultPath)
+	if err != nil {
+		return nil, err
+	}
+	components := make([]string, 0, len(componentFiles))
+
+	for _, component := range componentFiles {
+		if component.IsDir() {
+			continue
+		}
+		components = append(components, component.Name())
+	}
+	return components, nil
+}
 
 func HandleList(args []string) error {
 	if len(args) != 0 {
 		return errors.New("list command takes no arguments")
 	}
 
-	files, err := ListFiles()
+	tsxComponents, err := GetComponents(config.TSXVaultPath)
 	if err != nil {
 		return errors.New("error listing components")
 	}
 
-	if len(files) == 0 {
+	jsxComponents, err := GetComponents(config.JSXVaultPath)
+	if err != nil {
+		return errors.New("error listing components")
+	}
+
+	if len(jsxComponents)+len(tsxComponents) == 0 {
 		fmt.Println("vault is empty")
 		return nil
 	}
 
-	for _, file := range files {
-		fmt.Println(file)
+	tsxComponentsLength := len(tsxComponents)
+	if tsxComponentsLength > 0 {
+		fmt.Println("TSX Components")
+		treeDisplay(tsxComponents)
 	}
+
+	jsxComponentsLength := len(jsxComponents)
+	if jsxComponentsLength > 0 {
+		fmt.Println("JSX Components")
+		treeDisplay(jsxComponents)
+	}
+
 	return nil
 }
 
 func ListFiles() ([]string, error) {
 
-	entries, err := os.ReadDir(config.VaultPath)
-
+	tsxComponents, err := GetComponents(config.TSXVaultPath)
 	if err != nil {
 		return nil, err
 	}
 
-	files := make([]string, 0, len(entries))
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		files = append(files, entry.Name())
+	jsxComponents, err := GetComponents(config.JSXVaultPath)
+	if err != nil {
+		return nil, err
 	}
 
-	return files, nil
+	components := append(tsxComponents, jsxComponents...)
+
+	return components, nil
 }

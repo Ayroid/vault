@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"vault/internal/config"
 )
@@ -47,13 +48,28 @@ func HandleSave(args []string) error {
 	return CopyFile(src, opts)
 }
 
-func filenameExists(filename string) (bool, error) {
-	files, err := ListFiles()
+func validComponent(component string) bool {
+	component = strings.ToLower(component)
+	return strings.HasSuffix(component, ".tsx") || strings.HasSuffix(component, ".jsx")
+}
+
+func componentExists(component string) (bool, error) {
+	tsxComponent := strings.HasSuffix(component, ".tsx")
+
+	var vaultPath string
+
+	if tsxComponent {
+		vaultPath = config.TSXVaultPath
+	} else {
+		vaultPath = config.JSXVaultPath
+	}
+
+	files, err := GetComponents(vaultPath)
 	if err != nil {
 		return false, errors.New("error saving component")
 	}
 
-	filenameExist := slices.Contains(files, filename)
+	filenameExist := slices.Contains(files, component)
 
 	if filenameExist {
 		return true, nil
@@ -63,19 +79,25 @@ func filenameExists(filename string) (bool, error) {
 }
 
 func CopyFile(src string, opts SaveOptions) error {
+	src = strings.ToLower(src)
+
 	sourceFile, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer sourceFile.Close()
 
-	filename := filepath.Base(sourceFile.Name())
+	component := filepath.Base(sourceFile.Name())
 
 	if opts.Name != "" {
-		filename = opts.Name
+		component = opts.Name
 	}
 
-	exists, err := filenameExists(filename)
+	if !validComponent(component) {
+		return errors.New("invalid file. must be a component file with .tsx or .jsx extension")
+	}
+
+	exists, err := componentExists(component)
 	if err != nil {
 		return err
 	}
@@ -84,7 +106,15 @@ func CopyFile(src string, opts SaveOptions) error {
 		return errors.New("component with same name already exists in vault")
 	}
 
-	dest := filepath.Join(config.VaultPath, filename)
+	tsxComponent := strings.HasSuffix(component, ".tsx")
+
+	var dest string
+
+	if tsxComponent {
+		dest = filepath.Join(config.TSXVaultPath, component)
+	} else {
+		dest = filepath.Join(config.JSXVaultPath, component)
+	}
 
 	destinationFile, err := os.Create(dest)
 	if err != nil {
