@@ -86,10 +86,6 @@ func CopyFile(src string, opts SaveOptions) error {
 
 	dest := filepath.Join(config.VaultPath, filename)
 
-	if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil {
-		return err
-	}
-
 	destinationFile, err := os.Create(dest)
 	if err != nil {
 		return err

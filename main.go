@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
+	"vault/internal/config"
 	"vault/internal/registry"
 )
 
@@ -30,6 +32,10 @@ func getCommandHandler(cmd Command) (CommandHandler, error) {
 }
 
 func main() {
+	if err := os.MkdirAll(filepath.Dir(config.VaultPath), 0755); err != nil {
+		log.Fatal(err)
+	}
+
 	args := os.Args[1:]
 
 	if len(args) == 0 {

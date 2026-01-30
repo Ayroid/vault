@@ -17,6 +17,11 @@ func HandleList(args []string) error {
 		return errors.New("error listing components")
 	}
 
+	if len(files) == 0 {
+		fmt.Println("vault is empty")
+		return nil
+	}
+
 	for _, file := range files {
 		fmt.Println(file)
 	}
