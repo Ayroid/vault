@@ -2,7 +2,7 @@ package registry
 
 import (
 	"os"
-	"path/filepath"
+
 	"vault/internal/config"
 )
 
@@ -13,7 +13,7 @@ func SetupVault() error {
 	}
 
 	for _, vault := range vaults {
-		if err := os.MkdirAll(filepath.Dir(vault), 0755); err != nil {
+		if err := os.MkdirAll(vault, 0755); err != nil {
 			return err
 		}
 	}
