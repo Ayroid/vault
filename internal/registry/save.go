@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 
 	"vault/internal/config"
@@ -53,7 +52,11 @@ func validComponent(component string) bool {
 	return strings.HasSuffix(component, ".tsx") || strings.HasSuffix(component, ".jsx")
 }
 
-func componentExists(component string) (bool, error) {
+func NormalizeName(name string) string {
+	return strings.ToLower(name)
+}
+
+func componentExists(component string) (string, error) {
 	tsxComponent := strings.HasSuffix(component, ".tsx")
 
 	var vaultPath string
@@ -66,22 +69,27 @@ func componentExists(component string) (bool, error) {
 
 	files, err := GetComponents(vaultPath)
 	if err != nil {
-		return false, errors.New("error saving component")
+		return "", errors.New("error saving component")
 	}
 
-	filenameExist := slices.Contains(files, component)
+	normalizedComponent := NormalizeName(component)
 
-	if filenameExist {
-		return true, nil
+	for _, file := range files {
+		if NormalizeName(file) == normalizedComponent {
+			return file, nil
+		}
 	}
 
-	return false, nil
+	return "", nil
 }
 
 func CopyFile(src string, opts SaveOptions) error {
-	src = strings.ToLower(src)
+	absSrc, err := filepath.Abs(src)
+	if err != nil {
+		return err
+	}
 
-	sourceFile, err := os.Open(src)
+	sourceFile, err := os.Open(absSrc)
 	if err != nil {
 		return err
 	}
@@ -97,13 +105,13 @@ func CopyFile(src string, opts SaveOptions) error {
 		return errors.New("invalid file. must be a component file with .tsx or .jsx extension")
 	}
 
-	exists, err := componentExists(component)
+	existingComponent, err := componentExists(component)
 	if err != nil {
 		return err
 	}
 
-	if exists {
-		return errors.New("component with same name already exists in vault")
+	if existingComponent != "" {
+		return fmt.Errorf("component already exists (case-insensitive match: %s)", existingComponent)
 	}
 
 	tsxComponent := strings.HasSuffix(component, ".tsx")
