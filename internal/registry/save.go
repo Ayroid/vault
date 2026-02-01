@@ -3,109 +3,54 @@ package registry
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
-	"vault/internal/config"
+	"vault/internal/utils"
 )
 
-type SaveOptions struct {
-	Name string
-}
-
-func parseSaveArgs(args []string) (string, SaveOptions, error) {
-	if len(args) < 1 {
-		return "", SaveOptions{}, errors.New("usage: vault save <file> [--name <newname>]")
-	}
-
-	src := args[0]
-	opts := SaveOptions{}
-
-	i := 1
-	for i < len(args) {
-		switch args[i] {
-		case "--name":
-			if i+1 >= len(args) {
-				return "", SaveOptions{}, errors.New("--name requires a value")
-			}
-			opts.Name = args[i+1]
-			i += 2
-		default:
-			return "", SaveOptions{}, fmt.Errorf("unknown flag: %s", args[i])
-		}
-	}
-	return src, opts, nil
-}
-
 func HandleSave(args []string) error {
-	src, opts, err := parseSaveArgs(args)
+	if len(args) < 1 {
+		return errors.New("usage: vault save <file> [--name <newname>]")
+	}
+
+	remaining, name, err := utils.ParseNameFlag(args[1:])
 	if err != nil {
 		return err
 	}
-	return CopyFile(src, opts)
-}
 
-func validComponent(component string) bool {
-	component = strings.ToLower(component)
-	return strings.HasSuffix(component, ".tsx") || strings.HasSuffix(component, ".jsx")
-}
-
-func NormalizeName(name string) string {
-	return strings.ToLower(name)
-}
-
-func componentExists(component string) (string, error) {
-	tsxComponent := strings.HasSuffix(component, ".tsx")
-
-	var vaultPath string
-
-	if tsxComponent {
-		vaultPath = config.TSXVaultPath
-	} else {
-		vaultPath = config.JSXVaultPath
+	if len(remaining) > 0 {
+		return fmt.Errorf("unknown flag: %s", remaining[0])
 	}
 
-	files, err := GetComponents(vaultPath)
-	if err != nil {
-		return "", errors.New("error saving component")
-	}
-
-	normalizedComponent := NormalizeName(component)
-
-	for _, file := range files {
-		if NormalizeName(file) == normalizedComponent {
-			return file, nil
-		}
-	}
-
-	return "", nil
+	return saveComponent(args[0], name)
 }
 
-func CopyFile(src string, opts SaveOptions) error {
+func saveComponent(src string, customName string) error {
 	absSrc, err := filepath.Abs(src)
 	if err != nil {
 		return err
 	}
 
-	sourceFile, err := os.Open(absSrc)
+	if _, err := os.Stat(absSrc); err != nil {
+		return err
+	}
+
+	component := filepath.Base(absSrc)
+	if customName != "" {
+		component = customName
+	}
+
+	if !utils.IsComponentValid(component) {
+		return utils.ErrInvalidComponent
+	}
+
+	vaultPath, err := utils.GetComponentVault(component)
 	if err != nil {
 		return err
 	}
-	defer sourceFile.Close()
 
-	component := filepath.Base(sourceFile.Name())
-
-	if opts.Name != "" {
-		component = opts.Name
-	}
-
-	if !validComponent(component) {
-		return errors.New("invalid file. must be a component file with .tsx or .jsx extension")
-	}
-
-	existingComponent, err := componentExists(component)
+	existingComponent, err := utils.ComponentExists(component, vaultPath)
 	if err != nil {
 		return err
 	}
@@ -114,22 +59,6 @@ func CopyFile(src string, opts SaveOptions) error {
 		return fmt.Errorf("component already exists (case-insensitive match: %s)", existingComponent)
 	}
 
-	tsxComponent := strings.HasSuffix(component, ".tsx")
-
-	var dest string
-
-	if tsxComponent {
-		dest = filepath.Join(config.TSXVaultPath, component)
-	} else {
-		dest = filepath.Join(config.JSXVaultPath, component)
-	}
-
-	destinationFile, err := os.Create(dest)
-	if err != nil {
-		return err
-	}
-	defer destinationFile.Close()
-
-	_, err = io.Copy(destinationFile, sourceFile)
-	return err
+	destinationPath := filepath.Join(vaultPath, component)
+	return utils.CopyFile(absSrc, destinationPath)
 }

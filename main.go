@@ -12,19 +12,57 @@ type Command string
 type CommandHandler func(args []string) error
 
 const (
-	CmdSave Command = "save"
-	CmdList Command = "list"
+	CmdSave  Command = "save"
+	CmdList  Command = "list"
+	CmdGet   Command = "get"
+	CmdClear Command = "clear"
+	CmdHelp  Command = "help"
 )
 
 var CommandHandlers = map[Command]CommandHandler{
-	CmdSave: registry.HandleSave,
-	CmdList: registry.HandleList,
+	CmdSave:  registry.HandleSave,
+	CmdList:  registry.HandleList,
+	CmdGet:   registry.HandleGet,
+	CmdClear: registry.HandleClear,
+	CmdHelp:  handleHelp,
+}
+
+func handleHelp(args []string) error {
+	help := `Vault - A lightweight React/Next.js component registry CLI
+
+Usage:
+  vault <command> [arguments]
+
+Commands:
+  save <file> [--name <newname>]    Save a component to the vault
+  get <component> [--name <name>]   Retrieve a component from the vault
+  list                              List all components in the vault
+  clear                             Remove all components from the vault
+  help, --help, -h                  Show this help message
+
+Examples:
+  vault save Button.tsx             Save Button.tsx to the vault
+  vault save Button.tsx --name Btn.tsx  Save with a different name
+  vault get Button.tsx              Copy Button.tsx to your project
+  vault get Button.tsx --name MyButton.tsx  Copy with a different name
+  vault list                        Show all saved components
+  vault clear                       Clear the vault (with confirmation)
+
+Storage:
+  Components are stored in ~/.vault/components/ organized by type (tsx/jsx).`
+
+	fmt.Println(help)
+	return nil
+}
+
+func isHelpFlag(arg string) bool {
+	return arg == "--help" || arg == "-h" || arg == "help"
 }
 
 func getCommandHandler(cmd Command) (CommandHandler, error) {
 	handler, ok := CommandHandlers[cmd]
 	if !ok {
-		return nil, fmt.Errorf("unknown command %s", cmd)
+		return nil, fmt.Errorf("unknown command: %s\nRun 'vault --help' for usage", cmd)
 	}
 	return handler, nil
 }
@@ -36,8 +74,9 @@ func main() {
 
 	args := os.Args[1:]
 
-	if len(args) == 0 {
-		log.Fatal("no command provided")
+	if len(args) == 0 || isHelpFlag(args[0]) {
+		handleHelp(nil)
+		return
 	}
 
 	cmd := Command(args[0])
