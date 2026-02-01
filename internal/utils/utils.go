@@ -204,3 +204,12 @@ func ClearDirectory(path string) error {
 
 	return nil
 }
+
+// RemoveFile removes the specified directory from the given path
+func RemoveFile(componentPath string) error {
+	if err := os.Remove(componentPath); err != nil {
+		return err
+	}
+
+	return nil
+}
