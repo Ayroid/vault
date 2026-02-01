@@ -11,6 +11,7 @@ Save components from any project into a local registry, list them, and sync them
 - **Save** - Store `.tsx` and `.jsx` components in a local vault organized by file type
 - **List** - View all saved components at a glance, grouped by TSX and JSX
 - **Get** - Copy components from the vault into your project's components directory
+- **Delete** - Remove specific components from the vault
 - **Clear** - Remove all components from the vault with confirmation prompt
 - **Global Storage** - Components are stored in `~/.vault/` (user's home directory) for access from any project
 - **Duplicate Detection** - Case-insensitive duplicate checking prevents accidental overwrites
@@ -120,6 +121,19 @@ The command will:
 - If no components directory exists, prompt to create `components/vault/`
 - If a file with the same name exists, prompt to replace, rename, or abort
 
+### Delete a component
+
+```bash
+vault delete <component-name>
+```
+
+Remove a specific component from the vault:
+
+```bash
+vault delete Button.tsx
+vault delete Card.jsx
+```
+
 ### Clear the vault
 
 ```bash
@@ -168,6 +182,7 @@ Components are stored in the user's home directory:
 | `vault list` | List all saved components |
 | `vault get <component>` | Copy a component from the vault to your project |
 | `vault get <component> --name <name>` | Copy a component with a custom name |
+| `vault delete <component>` | Remove a specific component from the vault |
 | `vault clear` | Remove all components from the vault |
 
 ## Roadmap
@@ -177,6 +192,7 @@ Components are stored in the user's home directory:
 - [x] Global storage in user's home directory
 - [x] Case-insensitive duplicate detection
 - [x] `vault get` command to copy components into projects
+- [x] `vault delete` command to remove specific components
 - [x] `vault clear` command to remove all components
 - [ ] GitHub sync support
 - [ ] Component categories/tags
